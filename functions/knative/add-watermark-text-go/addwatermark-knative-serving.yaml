@@ -1,0 +1,10 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: watermark
+  namespace: watermark 
+spec:
+  template:
+    spec:
+      containers:
+        - image: ghcr.io/govindkailas/go-watermark:add-gin-router 
