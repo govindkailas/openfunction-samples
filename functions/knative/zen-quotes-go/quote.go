@@ -1,6 +1,7 @@
 package quote
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,15 @@ import (
 func init() {
 	functions.HTTP("quote", ZenQuote,
 		functions.WithFunctionPath("/quote"))
+}
+
+// respond back to the client with the quote author name and content.
+func respond(w http.ResponseWriter, quote string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	w.Write([]byte(quote))
 }
 
 func ZenQuote(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +41,13 @@ func ZenQuote(w http.ResponseWriter, r *http.Request) {
 		DateModified string   `json:"dateModified"`
 	}
 
-	resp, err := http.Get("https://api.quotable.io/random")
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Get("https://api.quotable.io/random")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -41,14 +57,5 @@ func ZenQuote(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	respond(w, quote.Author+" says: "+quote.Content)
-}
 
-// respond back to the client with the quote author name and content.
-
-func respond(w http.ResponseWriter, quote string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	w.Write([]byte(quote))
 }
