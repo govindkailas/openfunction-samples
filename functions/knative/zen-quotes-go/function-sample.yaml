@@ -4,7 +4,7 @@ metadata:
   name: function-zen-quotes
 spec:
   version: "v2.0.0"
-  image: "openfunctiondev/zen-quotes-go-func:v1"
+  image: "kailasg/zen-quotes-go-func:v1"
   imageCredentials:
     name: push-secret
   build:
