@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/OpenFunction/functions-framework-go/functions"
@@ -13,11 +12,6 @@ import (
 func init() {
 	functions.HTTP("quote", ZenQuote,
 		functions.WithFunctionPath("/quote"))
-}
-
-type Quote struct {
-	Quote  string `json:"q"`
-	Author string `json:"a"`
 }
 
 func ZenQuote(w http.ResponseWriter, r *http.Request) {
@@ -34,19 +28,16 @@ func ZenQuote(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	//output format in the resp is like this: [ {"q":"The clock indicates the moment...but what does eternity indicate?","a":"Walt Whitman","h":"<blockquote>&ldquo;The clock indicates the moment...but what does eternity indicate?&rdquo; &mdash; <footer>Walt Whitman</footer></blockquote>"} ]
+	var quote struct {
+		Quote  string `json:"q"`
+		Author string `json:"a"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&quote)
 	if err != nil {
-		fmt.Println("Failed to read response body:", err)
+		fmt.Println("Failed to fetch quote:", err)
 		return
 	}
-
-	var quote Quote
-	err = json.Unmarshal(body, &quote)
-	if err != nil {
-		fmt.Println("Failed to parse response body:", err)
-		return
-	}
-
 	fmt.Println(quote.Quote)
 	fmt.Println("  - ", quote.Author)
 
