@@ -1,6 +1,7 @@
 package quote
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,7 +21,13 @@ type Quote struct {
 }
 
 func ZenQuote(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get("https://zenquotes.io/api/random")
+	// skip ssl verify, somehow Go is not respecting the LetsEncrypt certificate of zenquotes.io
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Get("https://zenquotes.io/api/random")
 	if err != nil {
 		fmt.Println("Failed to fetch quote:", err)
 		return
